@@ -4365,11 +4365,10 @@ make_thumbnail() {
     image_name="${crop_mode}-${crop_offset}-${width}-${height}-${image//\/}"
 
     # Handle file extensions.
-    case ${image##*.} in
-        "eps"|"pdf"|"svg"|"gif"|"png")
-            image_name+=".png" ;;
-        *)  image_name+=".jpg" ;;
-    esac
+    file_types=("png" "jpg" "gif")
+    if [[ ! ${file_types[*]} =~ ${image##*.} ]]; then
+        image_name+=".jpg" 
+    fi
 
     # Create the thumbnail dir if it doesn't exist.
     mkdir -p "${thumbnail_dir:=${XDG_CACHE_HOME:-${HOME}/.cache}/thumbnails/neofetch}"
@@ -4377,10 +4376,9 @@ make_thumbnail() {
     if [[ ! -f "${thumbnail_dir}/${image_name}" ]]; then
         # Get image size so that we can do a better crop.
         [[ -z "$size" ]] && {
-            read -r og_width og_height <<< "$(identify -format "%w %h" "$image")"
+            read -r og_width og_height <<< "$(identify -format "%w %h" "$image[0]")"
             ((og_height > og_width)) && size="$og_width" || size="$og_height"
         }
-
         case $crop_mode in
             "fit")
                 c="$(convert "$image" \
